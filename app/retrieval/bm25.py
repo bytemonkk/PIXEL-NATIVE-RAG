@@ -1,5 +1,7 @@
+import pickle
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
@@ -40,15 +42,17 @@ class BM25Retriever:
             self.tokenized_documents
         )
 
-    def _tokenize(self, text: str) -> list[str]:
+    def _tokenize(
+        self,
+        text: str,
+    ) -> list[str]:
+
         text = text.lower()
 
-        tokens = re.findall(
+        return re.findall(
             r"\b\w+\b",
             text,
         )
-
-        return tokens
 
     def search(
         self,
@@ -94,3 +98,104 @@ class BM25Retriever:
             )
 
         return results
+
+    def save(
+        self,
+        output_dir: Path,
+    ) -> None:
+
+        output_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        index_path = (
+            output_dir / "bm25.pkl"
+        )
+
+        metadata_path = (
+            output_dir / "documents.json"
+        )
+
+        with index_path.open("wb") as file:
+            pickle.dump(
+                self.index,
+                file,
+            )
+
+        import json
+
+        metadata = [
+            asdict(document)
+            for document in self.documents
+        ]
+
+        temporary_path = metadata_path.with_suffix(
+            ".tmp"
+        )
+
+        with temporary_path.open(
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(
+                metadata,
+                file,
+                ensure_ascii=False,
+                indent=2,
+            )
+
+        temporary_path.replace(
+            metadata_path
+        )
+
+    @classmethod
+    def load(
+        cls,
+        input_dir: Path,
+    ) -> "BM25Retriever":
+
+        index_path = (
+            input_dir / "bm25.pkl"
+        )
+
+        metadata_path = (
+            input_dir / "documents.json"
+        )
+
+        if not index_path.exists():
+            raise FileNotFoundError(
+                f"BM25 index not found: {index_path}"
+            )
+
+        if not metadata_path.exists():
+            raise FileNotFoundError(
+                f"BM25 metadata not found: {metadata_path}"
+            )
+
+        import json
+
+        with metadata_path.open(
+            "r",
+            encoding="utf-8",
+        ) as file:
+            raw_documents = json.load(file)
+
+        documents = [
+            BM25Document(**document)
+            for document in raw_documents
+        ]
+
+        retriever = cls.__new__(cls)
+
+        retriever.documents = documents
+
+        retriever.tokenized_documents = [
+            retriever._tokenize(document.text)
+            for document in documents
+        ]
+
+        with index_path.open("rb") as file:
+            retriever.index = pickle.load(file)
+
+        return retriever
