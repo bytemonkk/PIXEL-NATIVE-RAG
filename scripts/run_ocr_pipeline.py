@@ -4,7 +4,7 @@ from uuid import uuid4
 from app.ingestion.pdf_renderer import PDFRenderer
 from app.ingestion.tiler import ImageTiler
 from app.ingestion.tile_quality import TileQualityFilter
-from app.ingestion.ocr import TileOCR
+from app.ingestion.ocr import (TileOCR, save_ocr_results)
 
 
 def main():
@@ -67,9 +67,22 @@ def main():
         result = ocr.extract(
             image_path=tile.image_path,
             tile_id=tile.tile_id,
+            page_number=tile.page_number,
         )
 
         ocr_results.append(result)
+
+    # 5. Save OCR metadata
+    ocr_output_path = (
+        Path("data/index")
+        / doc_id
+        / "ocr.json"
+    )
+
+    save_ocr_results(
+        results=ocr_results,
+        output_path=ocr_output_path,
+    )
 
     # 5. Report
     print()
@@ -78,6 +91,7 @@ def main():
     print(f"Total tiles: {len(all_tiles)}")
     print(f"Kept tiles: {len(kept_tiles)}")
     print(f"OCR results: {len(ocr_results)}")
+    print(f"OCR metadata: {ocr_output_path}")
     print()
 
     for result in ocr_results:

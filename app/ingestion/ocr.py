@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
+import json
 
 import pytesseract
 from PIL import Image
@@ -8,7 +9,8 @@ from PIL import Image
 @dataclass
 class OCRResult:
     tile_id: str
-    image_path: Path
+    page_number: int
+    image_path: str
     text: str
     confidence: float
 
@@ -26,6 +28,7 @@ class TileOCR:
         self,
         image_path: Path,
         tile_id: str,
+        page_number: int,
     ) -> OCRResult:
 
         if not image_path.exists():
@@ -51,7 +54,6 @@ class TileOCR:
         confidences = []
 
         for confidence in data["conf"]:
-
             try:
                 value = float(confidence)
             except ValueError:
@@ -68,7 +70,41 @@ class TileOCR:
 
         return OCRResult(
             tile_id=tile_id,
-            image_path=image_path,
+            page_number=page_number,
+            image_path=str(image_path),
             text=text.strip(),
             confidence=average_confidence,
         )
+
+
+def save_ocr_results(
+    results: list[OCRResult],
+    output_path: Path,
+) -> None:
+
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    data = [
+        asdict(result)
+        for result in results
+    ]
+
+    temporary_path = output_path.with_suffix(
+        ".tmp"
+    )
+
+    with temporary_path.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            data,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    temporary_path.replace(output_path)
