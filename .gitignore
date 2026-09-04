@@ -1,10 +1,41 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.pyo
+
+# Build / packaging
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
-.venv
+.venv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Pixel-Native RAG generated data
+data/raw/
+data/rendered/
+data/tiles/
+data/index/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
