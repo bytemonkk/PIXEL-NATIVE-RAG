@@ -32,6 +32,23 @@ class HybridRetriever:
             self._load_visual_metadata()
         )
 
+    def _load_visual_metadata(self) -> dict:
+        if not self.visual_metadata_path.exists():
+            raise FileNotFoundError(
+                "Visual metadata not found: "
+                f"{self.visual_metadata_path}"
+            )
+
+        with self.visual_metadata_path.open(
+            "r",
+            encoding="utf-8",
+        ) as file:
+            records = json.load(file)
+        return {
+            record["vector_id"]: record
+            for record in records
+        }
+        
     def search(
         self,
         query: str,
@@ -122,25 +139,40 @@ class HybridRetriever:
                 f"  {rank}. {tile_id}"
             )
 
-        raise NotImplementedError(
-            "Visual vector ID to tile ID mapping "
-            "completed successfully."
+        # --------------------------------------------------
+        # RRF fusion
+        # --------------------------------------------------
+
+        bm25_tile_ids = [
+            result.tile_id
+            for result in bm25_results
+        ]
+
+        print()
+        print("Running RRF fusion inside HybridRetriever...")
+
+        fused_results = self.fusion.fuse(
+            ranked_lists={
+                "bm25": bm25_tile_ids,
+                "visual": visual_tile_ids,
+            }
         )
-        
-    def _load_visual_metadata(self) -> dict:
-        if not self.visual_metadata_path.exists():
-            raise FileNotFoundError(
-                "Visual metadata not found: "
-                f"{self.visual_metadata_path}"
+
+        print()
+        print("RRF results inside HybridRetriever:")
+
+        for rank, result in enumerate(
+            fused_results,
+            start=1,
+        ):
+            print(
+                f"  {rank}. "
+                f"{result.tile_id} "
+                f"score={result.score:.6f} "
+                f"ranks={result.ranks}"
             )
 
-        with self.visual_metadata_path.open(
-            "r",
-            encoding="utf-8",
-        ) as file:
-            records = json.load(file)
-
-        return {
-            record["vector_id"]: record
-            for record in records
-        }
+        raise NotImplementedError(
+            "RRF fusion completed successfully."
+        )
+                
