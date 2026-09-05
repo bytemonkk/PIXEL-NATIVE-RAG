@@ -172,7 +172,53 @@ class HybridRetriever:
                 f"ranks={result.ranks}"
             )
 
-        raise NotImplementedError(
-            "RRF fusion completed successfully."
+        # --------------------------------------------------
+        # Evidence building
+        # --------------------------------------------------
+
+        print()
+        print(
+            "Building evidence inside HybridRetriever..."
         )
-                
+
+        top_fused_results = fused_results[:top_k]
+
+        evidence = self.evidence_builder.build(
+            top_fused_results
+        )
+
+        print()
+        print(
+            f"Evidence items created: {len(evidence)}"
+        )
+
+        for rank, item in enumerate(
+            evidence,
+            start=1,
+        ):
+            print()
+            print(
+                f"Evidence {rank}:"
+            )
+            print(
+                f"  Tile ID: {item.tile_id}"
+            )
+            print(
+                f"  Page: {item.page_number}"
+            )
+            print(
+                f"  RRF score: {item.rrf_score:.6f}"
+            )
+            print(
+                f"  BM25 rank: {item.bm25_rank}"
+            )
+            print(
+                f"  Visual rank: {item.visual_rank}"
+            )
+            print(
+                f"  Image exists: "
+                f"{item.image_path.exists()}"
+            )
+
+        return evidence
+                        
