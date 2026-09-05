@@ -1,5 +1,5 @@
 from pathlib import Path
-from uuid import uuid4
+# from uuid import uuid4
 
 from app.ingestion.pdf_renderer import PDFRenderer
 from app.ingestion.tiler import ImageTiler
@@ -10,7 +10,8 @@ from app.ingestion.ocr import (TileOCR, save_ocr_results)
 def main():
     pdf_path = Path("data/raw/sample.pdf")
 
-    doc_id = uuid4().hex
+    # doc_id = uuid4().hex
+    doc_id = "shared_sample_document"
 
     # 1. Render PDF
     renderer = PDFRenderer(

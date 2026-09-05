@@ -15,7 +15,8 @@ def main():
     index_dir = Path("data/index")
 
     # Use the same deterministic document ID for this build.
-    doc_id = "visual_index_sample"
+    # doc_id = "visual_index_sample"
+    doc_id = "shared_sample_document"
 
     print()
     print("Step 1: Rendering PDF...")
