@@ -26,4 +26,25 @@ class HybridRetriever:
         query: str,
         top_k: int = 5,
     ) -> list[EvidenceItem]:
-        raise NotImplementedError
+
+        bm25_results = self.bm25.search(
+            query=query,
+            top_k=top_k,
+        )
+
+        print()
+        print("BM25 results inside HybridRetriever:")
+
+        for rank, result in enumerate(
+            bm25_results,
+            start=1,
+        ):
+            print(
+                f"  {rank}. "
+                f"{result.tile_id} "
+                f"score={result.score:.6f}"
+            )
+
+        raise NotImplementedError(
+            "BM25 stage completed successfully."
+        )

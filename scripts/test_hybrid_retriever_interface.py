@@ -87,6 +87,24 @@ def main():
         "Dependency injection test successful!"
     )
     print()
+    print()
+    print("Testing HybridRetriever.search()...")
+
+    try:
+        retriever.search(
+            query="experimental results",
+            top_k=5,
+        )
+    except NotImplementedError as error:
+        print()
+        print(
+            f"Expected stop point: {error}"
+        )
+
+    print()
+    print(
+        "BM25 integration test successful!"
+    )
 
 
 if __name__ == "__main__":
