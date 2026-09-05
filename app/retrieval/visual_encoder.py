@@ -78,9 +78,7 @@ class SigLIPEncoder:
                 **inputs
             )
 
-        embedding = outputs.pooler_output
-
-        embedding = embedding.squeeze(0)
+        embedding = outputs.pooler_output.squeeze(0)
 
         embedding = embedding / embedding.norm(
             p=2
@@ -115,9 +113,7 @@ class SigLIPEncoder:
                 **inputs
             )
 
-        embedding = outputs.pooler_output
-
-        embedding = embedding.squeeze(0)
+        embedding = outputs.pooler_output.squeeze(0)
 
         embedding = embedding / embedding.norm(
             p=2
