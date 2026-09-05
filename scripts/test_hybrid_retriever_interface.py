@@ -48,6 +48,9 @@ def main():
         encoder=encoder,
         fusion=fusion,
         evidence_builder=evidence_builder,
+        visual_metadata_path=(
+            index_dir / "visual_metadata.json"
+        ),
     )
 
     print()
@@ -103,7 +106,7 @@ def main():
 
     print()
     print(
-        "BM25 integration test successful!"
+        "Visual vector ID to tile ID mapping test successful!"
     )
 
 

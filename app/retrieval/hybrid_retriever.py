@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from app.retrieval.bm25 import BM25Retriever
 from app.retrieval.evidence import EvidenceItem
 from app.retrieval.evidence_builder import EvidenceBuilder
@@ -14,12 +16,21 @@ class HybridRetriever:
         encoder: SigLIPEncoder,
         fusion: RRFFusion,
         evidence_builder: EvidenceBuilder,
+        visual_metadata_path: Path,
     ):
         self.bm25 = bm25
         self.faiss_index = faiss_index
         self.encoder = encoder
         self.fusion = fusion
         self.evidence_builder = evidence_builder
+
+        self.visual_metadata_path = (
+            visual_metadata_path
+        )
+
+        self.visual_metadata = (
+            self._load_visual_metadata()
+        )
 
     def search(
         self,
@@ -71,17 +82,65 @@ class HybridRetriever:
         print()
         print("Visual results inside HybridRetriever:")
 
+        visual_tile_ids = []
+
         for rank, result in enumerate(
             visual_results,
             start=1,
         ):
+            if result.vector_id not in self.visual_metadata:
+                raise KeyError(
+                    "Visual metadata missing for "
+                    f"vector ID: {result.vector_id}"
+                )
+
+            metadata = self.visual_metadata[
+                result.vector_id
+            ]
+
+            tile_id = metadata["tile_id"]
+
+            visual_tile_ids.append(
+                tile_id
+            )
+
             print(
                 f"  {rank}. "
                 f"vector_id={result.vector_id} "
+                f"tile_id={tile_id} "
                 f"score={result.score:.6f}"
             )
 
+        print()
+        print("Visual tile IDs:")
+
+        for rank, tile_id in enumerate(
+            visual_tile_ids,
+            start=1,
+        ):
+            print(
+                f"  {rank}. {tile_id}"
+            )
+
         raise NotImplementedError(
-            "BM25 and visual retrieval stages "
+            "Visual vector ID to tile ID mapping "
             "completed successfully."
         )
+        
+    def _load_visual_metadata(self) -> dict:
+        if not self.visual_metadata_path.exists():
+            raise FileNotFoundError(
+                "Visual metadata not found: "
+                f"{self.visual_metadata_path}"
+            )
+
+        with self.visual_metadata_path.open(
+            "r",
+            encoding="utf-8",
+        ) as file:
+            records = json.load(file)
+
+        return {
+            record["vector_id"]: record
+            for record in records
+        }
