@@ -93,22 +93,48 @@ def main():
     print()
     print("Testing HybridRetriever.search()...")
 
-    try:
-        retriever.search(
-            query="experimental results",
-            top_k=5,
-        )
-    except NotImplementedError as error:
-        print()
-        print(
-            f"Expected stop point: {error}"
-        )
+    evidence = retriever.search(
+        query="experimental results",
+        top_k=5,
+    )
 
     print()
     print(
-        "Visual vector ID to tile ID mapping test successful!"
+        f"Returned evidence items: "
+        f"{len(evidence)}"
     )
 
+    if len(evidence) != 5:
+        raise AssertionError(
+            "Expected exactly 5 evidence items."
+        )
+
+    if evidence[0].tile_id != (
+        "shared_sample_document-p0004-t0002"
+    ):
+        raise AssertionError(
+            "Unexpected top evidence tile."
+        )
+
+    for item in evidence:
+
+        if not item.image_path.exists():
+            raise AssertionError(
+                f"Evidence image does not exist: "
+                f"{item.image_path}"
+            )
+
+        if not item.text.strip():
+            raise AssertionError(
+                f"OCR text is empty for: "
+                f"{item.tile_id}"
+            )
+
+    print()
+    print(
+        "Complete HybridRetriever search "
+        "test successful!"
+    )
 
 if __name__ == "__main__":
     main()
