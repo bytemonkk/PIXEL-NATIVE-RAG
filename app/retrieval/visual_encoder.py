@@ -87,3 +87,40 @@ class SigLIPEncoder:
         )
 
         return embedding.cpu().tolist()
+
+    def encode_text(
+        self,
+        text: str,
+    ) -> list[float]:
+
+        if not text.strip():
+            raise ValueError(
+                "Text query cannot be empty."
+            )
+
+        inputs = self.processor(
+            text=[text],
+            padding="max_length",
+            return_tensors="pt",
+        )
+
+        inputs = {
+            key: value.to(self.device)
+            for key, value in inputs.items()
+        }
+
+        with torch.no_grad():
+
+            outputs = self.model.get_text_features(
+                **inputs
+            )
+
+        embedding = outputs.pooler_output
+
+        embedding = embedding.squeeze(0)
+
+        embedding = embedding / embedding.norm(
+            p=2
+        )
+
+        return embedding.cpu().tolist()
