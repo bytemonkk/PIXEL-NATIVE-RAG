@@ -9,7 +9,7 @@ from app.retrieval.faiss_index import (
 def main():
 
     index_dir = Path(
-        "data/index/visual_index_sample"
+        "data/index/shared_sample_document"
     )
 
     embeddings_path = (
