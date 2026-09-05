@@ -27,6 +27,10 @@ class HybridRetriever:
         top_k: int = 5,
     ) -> list[EvidenceItem]:
 
+        # --------------------------------------------------
+        # BM25 retrieval
+        # --------------------------------------------------
+
         bm25_results = self.bm25.search(
             query=query,
             top_k=top_k,
@@ -45,6 +49,39 @@ class HybridRetriever:
                 f"score={result.score:.6f}"
             )
 
+        # --------------------------------------------------
+        # Visual retrieval
+        # --------------------------------------------------
+
+        query_vector = self.encoder.encode_text(
+            query
+        )
+
+        print()
+        print(
+            "SigLIP query vector dimensions:",
+            len(query_vector),
+        )
+
+        visual_results = self.faiss_index.search(
+            query_vector=query_vector,
+            top_k=top_k,
+        )
+
+        print()
+        print("Visual results inside HybridRetriever:")
+
+        for rank, result in enumerate(
+            visual_results,
+            start=1,
+        ):
+            print(
+                f"  {rank}. "
+                f"vector_id={result.vector_id} "
+                f"score={result.score:.6f}"
+            )
+
         raise NotImplementedError(
-            "BM25 stage completed successfully."
+            "BM25 and visual retrieval stages "
+            "completed successfully."
         )
